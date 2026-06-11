@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Terminal, ArrowRight } from 'lucide-react';
+import { useUser, UserButton } from '@clerk/clerk-react';
+import { Link } from 'react-router-dom';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { isSignedIn, user } = useUser();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,7 +40,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <a href="#" className="flex items-center space-x-2 text-white group">
+          <Link to="/" className="flex items-center space-x-2 text-white group">
             <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-brand-purple to-brand-cyan p-[1px] flex items-center justify-center">
               <div className="h-full w-full rounded-lg bg-brand-bg flex items-center justify-center transition-colors group-hover:bg-brand-bg/50">
                 <Terminal className="h-5 w-5 text-brand-cyan group-hover:text-brand-purple transition-colors duration-300" />
@@ -46,7 +49,7 @@ export default function Navbar() {
             <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300">
               cursor<span className="text-brand-cyan">.ai</span>
             </span>
-          </a>
+          </Link>
 
           {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center space-x-8">
@@ -61,23 +64,39 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Desktop Buttons */}
+          {/* Desktop Buttons (Auth sensitive) */}
           <div className="hidden md:flex items-center space-x-4">
-            <a
-              href="#login"
-              className="text-sm text-slate-300 hover:text-white transition-colors duration-200 font-medium"
-            >
-              Sign In
-            </a>
-            <a
-              href="#pricing"
-              className="relative group overflow-hidden rounded-full p-[1px] transition-all duration-300"
-            >
-              <span className="absolute inset-0 bg-gradient-to-r from-brand-purple via-blue-500 to-brand-cyan rounded-full"></span>
-              <span className="relative block px-5 py-2 rounded-full bg-brand-bg text-sm font-semibold text-white transition-all group-hover:bg-transparent duration-300">
-                Get Started <ArrowRight className="inline-block ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </a>
+            {isSignedIn ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="text-sm text-slate-300 hover:text-white transition-colors duration-200 font-semibold bg-white/5 border border-white/10 hover:bg-white/10 px-4 py-2 rounded-full"
+                >
+                  Dashboard
+                </Link>
+                <div className="border-l border-brand-cardBorder/60 h-5 pl-2 flex items-center">
+                  <UserButton afterSignOutUrl="/" />
+                </div>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/sign-in"
+                  className="text-sm text-slate-300 hover:text-white transition-colors duration-200 font-medium"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/sign-up"
+                  className="relative group overflow-hidden rounded-full p-[1px] transition-all duration-300"
+                >
+                  <span className="absolute inset-0 bg-gradient-to-r from-brand-purple via-blue-500 to-brand-cyan rounded-full"></span>
+                  <span className="relative block px-5 py-2 rounded-full bg-brand-bg text-sm font-semibold text-white transition-all group-hover:bg-transparent duration-300">
+                    Get Started <ArrowRight className="inline-block ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -113,21 +132,41 @@ export default function Navbar() {
                 {link.name}
               </a>
             ))}
+            
+            {/* Mobile Auth options */}
             <div className="border-t border-brand-cardBorder/60 pt-4 flex flex-col space-y-3 px-3">
-              <a
-                href="#login"
-                onClick={() => setIsOpen(false)}
-                className="text-center text-sm text-slate-300 hover:text-white py-2"
-              >
-                Sign In
-              </a>
-              <a
-                href="#pricing"
-                onClick={() => setIsOpen(false)}
-                className="text-center text-sm font-semibold bg-gradient-to-r from-brand-purple to-brand-cyan hover:from-brand-purpleHover hover:to-brand-cyan text-white py-3 rounded-full shadow-lg shadow-brand-purple/20 transition-all duration-200"
-              >
-                Get Started
-              </a>
+              {isSignedIn ? (
+                <>
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setIsOpen(false)}
+                    className="text-center text-sm font-semibold bg-gradient-to-r from-brand-purple to-brand-cyan text-white py-3 rounded-full shadow-lg shadow-brand-purple/20 transition-all duration-200"
+                  >
+                    Dashboard
+                  </Link>
+                  <div className="flex items-center justify-between py-2.5 px-4 border border-brand-cardBorder bg-[#0c0824]/40 rounded-xl">
+                    <span className="text-sm text-slate-300 font-semibold">{user?.firstName || 'Account'}</span>
+                    <UserButton afterSignOutUrl="/" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/sign-in"
+                    onClick={() => setIsOpen(false)}
+                    className="text-center text-sm text-slate-300 hover:text-white py-2"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/sign-up"
+                    onClick={() => setIsOpen(false)}
+                    className="text-center text-sm font-semibold bg-gradient-to-r from-brand-purple to-brand-cyan hover:from-brand-purpleHover hover:to-brand-cyan text-white py-3 rounded-full shadow-lg shadow-brand-purple/20 transition-all duration-200"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
             </div>
           </motion.div>
         )}

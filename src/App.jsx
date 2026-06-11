@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Terminal } from 'lucide-react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
+
+// Import Layouts & Guards
+import ProtectedRoute from './components/ProtectedRoute';
+import AuthLayout from './layouts/AuthLayout';
+
+// Import Pages
+import SignInPage from './pages/SignIn';
+import SignUpPage from './pages/SignUp';
+import Dashboard from './pages/Dashboard';
+import ProfilePage from './pages/Profile';
+import SettingsPage from './pages/Settings';
 
 // Import Section Components
 import Navbar from './components/Navbar';
@@ -16,9 +29,35 @@ import FAQ from './components/FAQ';
 import CTA from './components/CTA';
 import Footer from './components/Footer';
 import BackToTop from './components/BackToTop';
-
-import { HelmetProvider } from 'react-helmet-async';
 import SEO from './components/SEO';
+
+// Public Landing Page Component
+function Home() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="bg-brand-bg text-white selection:bg-brand-purple/40 selection:text-white"
+    >
+      <Navbar />
+      <main>
+        <Hero />
+        <TrustedBy />
+        <Features />
+        <InteractiveDemo />
+        <WhyChooseUs />
+        <Stats />
+        <Testimonials />
+        <Pricing />
+        <FAQ />
+        <CTA />
+      </main>
+      <Footer />
+      <BackToTop />
+    </motion.div>
+  );
+}
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -29,8 +68,6 @@ export default function App() {
     }, 1500); // 1.5s loading transition
     return () => clearTimeout(timer);
   }, []);
-
-
 
   return (
     <HelmetProvider>
@@ -66,36 +103,55 @@ export default function App() {
             </div>
           </motion.div>
         ) : (
-          /* Main Landing Page */
-          <motion.div
-            key="content"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="bg-brand-bg text-white selection:bg-brand-purple/40 selection:text-white"
-          >
-            {/* Global Sticky Layout Components */}
-            <Navbar />
+          /* Route definitions */
+          <Routes key="routes">
+            {/* Public landing page */}
+            <Route path="/" element={<Home />} />
 
-            {/* Sections */}
-            <main>
-              <Hero />
-              <TrustedBy />
-              <Features />
-              <InteractiveDemo />
-              <WhyChooseUs />
-              <Stats />
-              <Testimonials />
-              <Pricing />
-              <FAQ />
-              <CTA />
-            </main>
+            {/* Auth layouts */}
+            <Route element={<AuthLayout />}>
+              <Route path="/sign-in/*" element={<SignInPage />} />
+              <Route path="/sign-up/*" element={<SignUpPage />} />
+            </Route>
 
-            <Footer />
+            {/* Protected dashboard settings */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navbar />
+                    <Dashboard />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navbar />
+                    <ProfilePage />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navbar />
+                    <SettingsPage />
+                  </>
+                </ProtectedRoute>
+              }
+            />
 
-            {/* Global Widgets */}
-            <BackToTop />
-          </motion.div>
+            {/* Redirect fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         )}
       </AnimatePresence>
     </HelmetProvider>
