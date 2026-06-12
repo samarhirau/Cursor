@@ -3,12 +3,22 @@ import { env } from '../config/env.js';
 import { ApiError } from '../utils/apiError.js';
 import { User } from '../models/user.model.js';
 
-const clerkClient = createClerkClient({ secretKey: env.CLERK_SECRET_KEY });
+const clerkClient = createClerkClient({ 
+  secretKey: env.CLERK_SECRET_KEY,
+  publishableKey: env.CLERK_PUBLISHABLE_KEY
+});
 
 export const authMiddleware = async (req, res, next) => {
   try {
     // 1. Verify Request using Clerk authenticateRequest
-    const requestState = await clerkClient.authenticateRequest(req);
+    // Express requests do not contain fully qualified URLs, which Clerk's web-standard Request parser requires.
+    const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+    const clerkRequest = new Request(fullUrl, {
+      method: req.method,
+      headers: new Headers(req.headers),
+    });
+    
+    const requestState = await clerkClient.authenticateRequest(clerkRequest);
     
     if (!requestState.isSignedIn) {
       throw new ApiError(401, 'Unauthorized: Invalid authentication session');
@@ -24,7 +34,7 @@ export const authMiddleware = async (req, res, next) => {
     if (!dbUser) {
       // If endpoint is sync-user, let it pass to register in DB
       const cleanUrl = req.originalUrl.split('?')[0];
-      if (cleanUrl === '/api/auth/sync-user') {
+      if (cleanUrl === '/api/v1/auth/sync-user') {
         return next();
       }
       throw new ApiError(403, 'User profile not synchronized. Please call sync-user endpoint first.');

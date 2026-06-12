@@ -48,6 +48,10 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
+app.get('/', (req, res) => {
+  res.send('Welcome to the SaaS API!');
+});
+
 // 5. Body Parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

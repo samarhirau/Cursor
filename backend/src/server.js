@@ -9,9 +9,7 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
-app.get('/', (req, res) => {
-  res.send('Welcome to the SaaS API!');
-});
+
 
 // Connect database
 await connectDB();
